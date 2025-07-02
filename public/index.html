@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auth + Expense Tracker</title>
+  <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+  <style>
+    .hidden { display: none; }
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    input, select, button { margin: 0.5rem; padding: 0.5rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
+    th { background: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <!-- Auth Section -->
+  <div id="authSection">
+    <div id="signupSection">
+      <h2>Sign Up</h2>
+      <form id="signupForm">
+        <input id="name" type="text" placeholder="Name" required>
+        <input id="email" type="email" placeholder="Email" required>
+        <input id="password" type="password" placeholder="Password" required><br>
+        <button type="submit">Sign Up</button>
+      </form>
+      <button id="switchToLogin">Already have an account? Login</button>
+    </div>
+
+    <div id="loginSection" class="hidden">
+      <h2>Login</h2>
+      <form id="loginForm">
+        <input id="loginEmail" type="email" placeholder="Email" required>
+        <input id="loginPassword" type="password" placeholder="Password" required><br>
+        <button type="submit">Sign In</button>
+      </form>
+      <button id="switchToSignup">Don't have an account? Sign Up</button>
+    </div>
+  </div>
+
+  <!-- Expense Section -->
+  <div id="expenseSection" class="hidden">
+    <h1>Expense Tracker</h1>
+    <form id="expenseForm">
+      <input type="text" id="description" placeholder="Description" required />
+      <input type="number" id="amount" placeholder="Amount" required />
+      <select id="category">
+        <option value="Food">Food</option>
+        <option value="Travel">Travel</option>
+        <option value="Shopping">Shopping</option>
+      </select>
+      <button type="submit">Add Expense</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Category</th>
+        </tr>
+      </thead>
+      <tbody id="expenseList"></tbody>
+    </table>
+  </div>
+
+  <!-- Payment Section -->
+
+    <h1>Cashfree Check Integration</h1>
+
+  <div class="card">
+    <h3>Click below to open the checkout page in the current tab</h3>
+    <button id="renderBtn">Pay Now</button>
+    <div id="cf_checkout"></div>
+  </div>
+    <script src="../public/cashfreeWeb_self.js"></script>
+
+    <script>
+      const cashfree = Cashfree({
+        mode: "sandbox",
+      })
+
+      document.getElementById("renderBtn").addEventListener("click", async () => {
+        try {
+          const response = await fetch("http://localhost:3000/payments/pay", {
+            method: "POST"
+          })
+
+          const data = await response.json()
+          const paymentSessionId = data.paymentSessionId
+          const orderId = data.orderId
+
+          let checkoutOptions = {
+            paymentSessionId,
+            redirectTarget: "_self"
+          }
+
+          const result = await cashfree.checkout(checkoutOptions)
+        //   const result = await cashfree.checkout({
+        // paymentSessionId: paymentSessionId,
+        // redirectTarget: "_self",
+        // });
+          
+          if (result.error) {
+        console.log("Popup closed or error during payment:", result.error);
+      }
+          
+      //     if (result.redirect) {
+      //   console.log("Redirection fallback triggered");
+      // }
+          
+          if (result.paymentDetails) {
+
+            const verifyRes = await fetch(`http://localhost:3000/payments/payment-status/${orderId}`);
+            const verifyData = await verifyRes.json();
+                alert("Your payment is " + verifyData.orderStatus);
+          }
+              
+            } catch (error) {
+            console.error("Checkout error::", error);
+          }
+
+          })
+            
+
+    </script>
+
+
+
+  <script>
+    const signupSection = document.getElementById("signupSection");
+    const loginSection = document.getElementById("loginSection");
+    const authSection = document.getElementById("authSection");
+    const expenseSection = document.getElementById("expenseSection");
+    const expenseList = document.getElementById("expenseList");
+    const expenseForm = document.getElementById("expenseForm");
+
+    document.getElementById("switchToLogin").onclick = () => {
+      signupSection.classList.add("hidden");
+      loginSection.classList.remove("hidden");
+    }
+    document.getElementById("switchToSignup").onclick = () => {
+      loginSection.classList.add("hidden");
+      signupSection.classList.remove("hidden");
+    }
+
+    document.getElementById("signupForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const res = await fetch("http://localhost:3000/users/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        alert(data.msg);
+        if (res.ok) {
+          document.getElementById("signupForm").reset();
+          signupSection.classList.add("hidden");
+          loginSection.classList.remove("hidden");
+        }
+      } catch (err) {
+        alert("Signup error: " + err.message);
+      }
+    }
+
+    document.getElementById("loginForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+
+      try {
+        const res = await fetch("http://localhost:3000/users/signin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        alert(data.msg);
+        if (res.ok) {
+          localStorage.setItem("token", data.token);
+          document.getElementById("loginForm").reset();
+          authSection.classList.add("hidden");
+          expenseSection.classList.remove("hidden");
+          fetchExpenses();
+        }
+      } catch (err) {
+        alert("Login error: " + err.message);
+      }
+    }
+
+    async function fetchExpenses() {
+      const token = localStorage.getItem("token");
+
+      try {
+        const res = await fetch("http://localhost:3000/expenses/getExpense", {
+          method: "GET",
+          headers: {
+          Authorization: `Bearer ${token}`
+      }
+    });
+
+        const data = await res.json();
+        expenseList.innerHTML = "";
+        data.forEach(exp => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${exp.description}</td><td>₹${exp.expenseAmount}</td><td>${exp.category}</td>`;
+          expenseList.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Fetch failed", err);
+      }
+    }
+
+    expenseForm.onsubmit = async (e) => {
+      e.preventDefault();
+
+      const description = document.getElementById("description").value;
+      const expenseAmount = parseFloat(document.getElementById("amount").value);
+      const category = document.getElementById("category").value;
+      const token = localStorage.getItem("token");
+
+      try {
+        await fetch("http://localhost:3000/expenses/addExpense", {
+          method: "POST",
+          headers: { "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`
+           },
+          body: JSON.stringify({ description, expenseAmount, category })
+        });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert("Error: " + data.msg + "\n" + data.error);
+        return;
+      }
+        expenseForm.reset();
+        fetchExpenses();
+      } catch (err) {
+        console.error("Add failed", err);
+      }
+    }
+  </script>
+</body>
+</html>
