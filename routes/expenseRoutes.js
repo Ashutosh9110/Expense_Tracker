@@ -9,6 +9,7 @@ const authenticate = require("../middleware/auth");
 router.post("/addExpense", authenticate, expenseController.addExpense)
 router.get("/getExpense", authenticate, expenseController.getExpense)
 router.delete("/deleteExpense/:id", authenticate, expenseController.deleteExpense)
+router.get("/leaderboard", authenticate, expenseController.leaderboard)
 
 
 module.exports = router

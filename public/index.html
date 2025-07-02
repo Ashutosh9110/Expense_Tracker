@@ -65,6 +65,15 @@
     </table>
   </div>
 
+  <!-- Premium user Section -->
+
+  <div id="leaderboardSection" class="hidden">
+    <h2>Leaderboard</h2>
+    <ul id="leaderboardList"></ul>
+  </div>
+  <button id="leaderboardBtn">Show Leaderboard</button>
+
+
   <!-- Payment Section -->
 
     <h1>Cashfree Check Integration</h1>
@@ -126,7 +135,27 @@
 
     </script>
 
-
+<script>
+  document.getElementById("leaderboardBtn").addEventListener("click", async () => {
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch("http://localhost:3000/expenses/leaderboard", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    const leaderboardList = document.getElementById("leaderboardList");
+    leaderboardList.innerHTML = "";
+    data.forEach(entry => {
+      const li = document.createElement("li");
+      li.textContent = `Name: ${entry.name}, Total expense = ₹${entry.totalExpense}`;
+      leaderboardList.appendChild(li);
+    });
+    document.getElementById("leaderboardSection").classList.remove("hidden");
+  } catch (err) {
+    alert("Failed to load leaderboard: " + err.message);
+  }
+});
+</script>
 
   <script>
     const signupSection = document.getElementById("signupSection");
