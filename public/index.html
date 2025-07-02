@@ -139,10 +139,13 @@
   document.getElementById("leaderboardBtn").addEventListener("click", async () => {
   const token = localStorage.getItem("token");
   try {
-    const res = await fetch("http://localhost:3000/expenses/leaderboard", {
+    const res = await fetch("http://localhost:3000/premium/leaderboard", {
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
+     if (!res.ok) {
+      throw new Error(data.msg + " - " + data.error);
+}
     const leaderboardList = document.getElementById("leaderboardList");
     leaderboardList.innerHTML = "";
     data.forEach(entry => {
