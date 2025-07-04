@@ -27,7 +27,8 @@ const expenses = sequelize.define("expenses", {
     references: {
       model: users,
       key: "id"
-    }}
+    }},
+
 })
 
 

@@ -2,6 +2,7 @@
 
 
 const {expenses} = require("../models/expenseModel")
+const { users } = require("../models/userModel");
 
 
 const addExpense = async (req, res) => {
@@ -10,10 +11,18 @@ const addExpense = async (req, res) => {
     const { description, expenseAmount, category } = req.body
     const userId = req.userId
 
-    const expense = await expenses.create({
+    const newExpense  = await expenses.create({
       description, expenseAmount, category, userId 
     })
-    res.status(200).json(expense)
+
+
+    await users.increment("totalExpenses", {
+      by: expenseAmount,
+      where: { id: userId }
+    });
+
+
+    res.status(200).json({ msg: "Expense added successfully" })
   } catch (error) {
     res.status(500).json({ msg : "Unable to add expense", error: error.message})
   }
