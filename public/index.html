@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Auth + Expense Tracker</title>
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <style>
     .hidden { display: none; }
     body { font-family: Arial, sans-serif; margin: 2rem; }
@@ -28,6 +29,7 @@
       </form>
       <button id="switchToLogin">Already have an account? Login</button>
     </div>
+    
 
     <div id="loginSection" class="hidden">
       <h2>Login</h2>
@@ -37,8 +39,19 @@
         <button type="submit">Sign In</button>
       </form>
       <button id="switchToSignup">Don't have an account? Sign Up</button>
+      <button id="forgotPasswordBtn">Forgot Password</button>
     </div>
   </div>
+
+  <div id="forgotPasswordSection" class="hidden">
+    <h2>Reset Password</h2>
+    <form id="forgotPasswordForm">
+      <input id="forgotEmail" type="email" placeholder="Enter registered email" required />
+      <button type="submit">Send Reset Link</button>
+    </form>
+    <button id="backToLoginBtn">Back to Login</button>
+  </div>
+  
 
   <!-- Expense Section -->
   <div id="expenseSection" class="hidden">
@@ -196,7 +209,7 @@
 
   <script>
     const signupSection = document.getElementById("signupSection");
-    const loginSection = document.getElementById("loginSection");
+    // const loginSection = document.getElementById("loginSection");
     const authSection = document.getElementById("authSection");
     const expenseSection = document.getElementById("expenseSection");
     const expenseList = document.getElementById("expenseList");
@@ -354,6 +367,41 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
   localStorage.removeItem("token");
   location.reload();
 });
+
+const forgotPasswordSection = document.getElementById("forgotPasswordSection");
+const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+const backToLoginBtn = document.getElementById("backToLoginBtn");
+const loginSection = document.getElementById("loginSection");
+
+// Show Forgot Password Form
+forgotPasswordBtn.addEventListener("click", () => {
+  loginSection.classList.add("hidden");
+  forgotPasswordSection.classList.remove("hidden");
+});
+
+// Back to login
+backToLoginBtn.addEventListener("click", () => {
+  forgotPasswordSection.classList.add("hidden");
+  loginSection.classList.remove("hidden");
+});
+
+// Handle forgot password form submit
+document.getElementById("forgotPasswordForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("forgotEmail").value;
+
+  try {
+    const res = await axios.post("http://localhost:3000/password/forgotpassword", { email });
+    alert(res.data.msg || "Reset email sent!");
+    document.getElementById("forgotPasswordForm").reset();
+    forgotPasswordSection.classList.add("hidden");
+    loginSection.classList.remove("hidden");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to send reset email.");
+  }
+});
+
 
 
 
