@@ -65,6 +65,8 @@
         <option value="Shopping">Shopping</option>
       </select>
       <button type="submit">Add Expense</button>
+      <button id="viewReportBtn">View Report</button>
+
     </form>
 
     <table>
@@ -434,9 +436,18 @@ document.getElementById("forgotPasswordForm").addEventListener("submit", async (
   }
 });
 
-
-
-
   </script>
+
+
+<div id="reportSection" class="hidden"></div>
+
+<iframe id="reportFrame" src="" style="width:100%; height:800px; border:none;" class="hidden"></iframe>
+
+<script>
+  document.getElementById("viewReportBtn").addEventListener("click", () => {
+    document.getElementById("reportFrame").src = "/frontend";
+    document.getElementById("reportFrame").classList.remove("hidden");
+  });
+</script>
 </body>
 </html>

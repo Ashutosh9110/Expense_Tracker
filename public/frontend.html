@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Day to Day Expenses</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background: #f8f9fa;
+    }
+    h1, h2, h3 {
+      color: #007bff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: left;
+    }
+    th {
+      background: #e0f0ff;
+    }
+    .section {
+      margin-bottom: 3rem;
+      background: #ffffff;
+      padding: 1rem;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .highlight {
+      font-weight: bold;
+    }
+    .savings {
+      color: green;
+    }
+    .danger {
+      color: red;
+    }
+    #downloadBtn {
+      padding: 0.5rem 1rem;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      margin-top: 1rem;
+      border-radius: 4px;
+    }
+    #downloadBtn:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+    select, input[type="date"] {
+      padding: 0.5rem;
+      margin: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+
+
+
+  <h1>Day to Day Expenses</h1>
+
+  <div class="section">
+    <label for="filterRange">Filter by:</label>
+    <select id="filterRange">
+      <option value="daily">Daily</option>
+      <option value="weekly">Weekly</option>
+      <option value="monthly" selected>Monthly</option>
+    </select>
+    <input type="date" id="filterDate">
+    <button onclick="filterExpenses()">Apply</button>
+  </div>
+
+  <div class="section">
+    <h2>March 2021</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Income</th>
+          <th>Expense</th>
+        </tr>
+      </thead>
+      <tbody id="expenseTableBody">
+        <!-- Populated by JS -->
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3" class="highlight">Total</td>
+          <td class="highlight" id="totalIncome">0.00</td>
+          <td class="highlight" id="totalExpense">0.00</td>
+        </tr>
+        <tr>
+          <td colspan="4" class="highlight">Savings =</td>
+          <td id="netSavings" class="savings highlight">0.00</td>
+        </tr>
+      </tfoot>
+    </table>
+    <button id="downloadBtn" disabled>Download Report</button>
+  </div>
+
+  <div class="section">
+    <h2>Yearly Report</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Income</th>
+          <th>Expense</th>
+          <th>Savings</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>March</td>
+          <td>₹60,000.00</td>
+          <td class="danger">₹5,670.00</td>
+          <td class="savings">₹54,330.00</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Notes Report 2021</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>11-02-2021</td><td>Gave advance to construction.</td></tr>
+        <tr><td>16-02-2021</td><td>Fgfh nhj hij</td></tr>
+        <tr><td>17-02-2021</td><td>17 17 17</td></tr>
+        <tr><td>18-02-2021</td><td>18</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+ 
+
+
+  <script>
+    // Simulated values for display
+    const isPremiumUser = false;
+    const expenses = [
+      { date: "01-03-2021", description: "Milk", category: "Milk", income: 0, expense: 60 },
+      { date: "04-03-2021", description: "Salary", category: "Salary", income: 40000, expense: 0 },
+      { date: "04-03-2021", description: "Fruits", category: "Fruits", income: 0, expense: 500 },
+      { date: "04-03-2021", description: "Medicines", category: "Health", income: 0, expense: 50 },
+      { date: "05-03-2021", description: "Salary", category: "Salary", income: 20000, expense: 0 },
+      { date: "05-03-2021", description: "Milk", category: "Milk", income: 0, expense: 60 },
+      { date: "05-03-2021", description: "Fees", category: "Education", income: 0, expense: 4000 },
+      { date: "05-03-2021", description: "Party", category: "Birthday Treat", income: 0, expense: 500 },
+      { date: "05-03-2021", description: "Travel + Card", category: "Auto And Transport", income: 0, expense: 500 },
+    ];
+
+    function renderTable() {
+      const tbody = document.getElementById("expenseTableBody");
+      tbody.innerHTML = "";
+      let totalIncome = 0, totalExpense = 0;
+      expenses.forEach(e => {
+        const row = `<tr>
+          <td>${e.date}</td>
+          <td>${e.description}</td>
+          <td>${e.category}</td>
+          <td>${e.income ? `₹${e.income.toFixed(2)}` : ""}</td>
+          <td>${e.expense ? `₹${e.expense.toFixed(2)}` : ""}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+        totalIncome += e.income;
+        totalExpense += e.expense;
+      });
+      document.getElementById("totalIncome").textContent = `₹${totalIncome.toFixed(2)}`;
+      document.getElementById("totalExpense").textContent = `₹${totalExpense.toFixed(2)}`;
+      document.getElementById("netSavings").textContent = `₹${(totalIncome - totalExpense).toFixed(2)}`;
+    }
+
+    function filterExpenses() {
+      alert("Filter logic to be implemented as per selected range and date.");
+    }
+
+    window.onload = function() {
+      renderTable();
+      document.getElementById("downloadBtn").disabled = !isPremiumUser;
+    }
+  </script>
+</body>
+</html>
