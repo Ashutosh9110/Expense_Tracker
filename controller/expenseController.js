@@ -11,11 +11,11 @@ const addExpense = async (req, res) => {
   try {
 
     t = await sequelize.transaction()
-    const { description, expenseAmount, category } = req.body
+    const { description, expenseAmount, category, note } = req.body
     const userId = req.userId
 
     await expenses.create({
-      description, expenseAmount, category, userId 
+      description, expenseAmount, category, note, userId 
     }, { transaction : t})
 
 
