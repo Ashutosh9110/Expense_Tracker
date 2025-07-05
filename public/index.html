@@ -109,7 +109,7 @@
   if (token) {
     document.getElementById("authSection").classList.add("hidden");
     document.getElementById("expenseSection").classList.remove("hidden");
-    document.getElementById("logoutBtn").classList.remove("hidden"); // ✅ SHOW LOGOUT
+    logoutBtn.classList.remove("hidden"); 
 
     fetchExpenses();
     }
@@ -209,22 +209,31 @@
 
   <script>
     const signupSection = document.getElementById("signupSection");
-    // const loginSection = document.getElementById("loginSection");
+    const loginSection = document.getElementById("loginSection");
     const authSection = document.getElementById("authSection");
     const expenseSection = document.getElementById("expenseSection");
     const expenseList = document.getElementById("expenseList");
     const expenseForm = document.getElementById("expenseForm");
+    const logoutBtn =  document.getElementById("logoutBtn")
 
-    document.getElementById("switchToLogin").onclick = () => {
-      signupSection.classList.add("hidden");
+
+    
+  
+
+    document.getElementById("switchToLogin").onclick = () => { // here document.getElementById("signupForm") is a DOM element and we are assigning a function to it.
       loginSection.classList.remove("hidden");
+      signupSection.classList.add("hidden");
     }
     document.getElementById("switchToSignup").onclick = () => {
-      loginSection.classList.add("hidden");
       signupSection.classList.remove("hidden");
+      loginSection.classList.add("hidden");
     }
 
-    document.getElementById("signupForm").onsubmit = async (e) => {
+
+
+    document.getElementById("signupForm").onsubmit = async (e) => { //onsubmit is the correct event listener for a <form> element.
+
+
       e.preventDefault();
       const name = document.getElementById("name").value;
       const email = document.getElementById("email").value;
@@ -232,11 +241,30 @@
 
       try {
         const res = await fetch("http://localhost:3000/users/signup", {
+// res is the response object returned by fetch().  It contains: Status (res.status), Headers, Body (in a raw stream format)......json() parses the body into usable data
+
+
+
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password })
         });
-        const data = await res.json();
+        const data = await res.json(); // json() parses the body into usable data
+// It returns a Promise that resolves to a JavaScript object
+// So when you write: const data = await res.json();.... we are Waiting for the response body to be read, Parsing the JSON, Storing the result in data (usually an object)
+
+// {
+//   "msg": "Signup successful",
+//   "token": "abc123xyz"
+// }
+
+// becomes
+
+// { msg: "Signup successful", token: "abc123xyz" }
+
+
+
+
         alert(data.msg);
         if (res.ok) {
           document.getElementById("signupForm").reset();
@@ -247,6 +275,8 @@
         alert("Signup error: " + err.message);
       }
     }
+
+
 
     document.getElementById("loginForm").onsubmit = async (e) => {
       e.preventDefault();
@@ -263,10 +293,13 @@
         alert(data.msg);
         if (res.ok) {
           localStorage.setItem("token", data.token);
+// localStorage is a built-in browser storage that lets you store key-value pairs — permanently (until manually cleared). It persists even if the page is reloaded or the browser is closed.You can store strings only.
+
+
           document.getElementById("loginForm").reset();
           authSection.classList.add("hidden");
           expenseSection.classList.remove("hidden");
-          document.getElementById("logoutBtn").classList.remove("hidden"); 
+          logoutBtn.classList.remove("hidden"); 
           fetchExpenses();
         }
       } catch (err) {
@@ -362,8 +395,7 @@
       }
     }
 
-// Logout button functionality
-document.getElementById("logoutBtn").addEventListener("click", () => {
+  logoutBtn.addEventListener("click", () => {
   localStorage.removeItem("token");
   location.reload();
 });
@@ -371,7 +403,7 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 const forgotPasswordSection = document.getElementById("forgotPasswordSection");
 const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
 const backToLoginBtn = document.getElementById("backToLoginBtn");
-const loginSection = document.getElementById("loginSection");
+// const loginSection = document.getElementById("loginSection");
 
 // Show Forgot Password Form
 forgotPasswordBtn.addEventListener("click", () => {

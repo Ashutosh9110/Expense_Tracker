@@ -33,9 +33,6 @@ const expenses = sequelize.define("expenses", {
 
 
 
-users.hasMany(expenses, {foreignKey: "userId", onDelete: "CASCADE"})
-expenses.belongsTo(users, {foreignKey: "userId"})
-
 
 
  module.exports = {

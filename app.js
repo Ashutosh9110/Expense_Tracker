@@ -7,17 +7,18 @@ const userRouter = require("./routes/userRoutes")
 const expenseRouter = require("./routes/expenseRoutes")
 const paymentRouter = require("./routes/paymentRoutes")
 const premiumRouter = require("./routes/premiumRoutes")
-const passwordRouter = require("./routes/passwordRoutes")
+const resetPasswordRouter = require("./routes/resetPasswordRoutes")
 const {sequelize} = require("./utils/db-connection")
 
 app.use(cors()) 
 
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 app.use("/users", userRouter)
 app.use("/expenses", expenseRouter)
 app.use("/payments", paymentRouter)
 app.use("/premium", premiumRouter)
-app.use("/password", passwordRouter)
+app.use("/password", resetPasswordRouter)
 
 
 app.get("/", (req, res) => {

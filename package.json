@@ -12,6 +12,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@getbrevo/brevo": "^2.5.0",
     "bcrypt": "^6.0.0",
     "cashfree-pg": "^5.0.8",
     "cors": "^2.8.5",
@@ -21,6 +22,7 @@
     "mysql2": "^3.14.1",
     "nodemon": "^3.1.10",
     "sequelize": "^6.37.7",
-    "sib-api-v3-sdk": "^8.5.0"
+    "sib-api-v3-sdk": "^8.5.0",
+    "uuid": "^11.1.0"
   }
 }
