@@ -66,7 +66,13 @@
       </select>
       <button type="submit">Add Expense</button>
       <button id="viewReportBtn">View Report</button>
-
+      <label for="rowsPerPage">Rows per page:</label>
+      <select id="rowsPerPage">
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+      </select>
     </form>
 
     <table>
@@ -119,7 +125,16 @@
     });
 
 
-    
+    </script>
+
+    <script>
+document.getElementById("rowsPerPage").value = localStorage.getItem("expense_limit") || 10;
+
+document.getElementById("rowsPerPage").addEventListener("change", (e) => {
+  limit = e.target.value;
+  localStorage.setItem("expense_limit", limit);
+  fetchExpenses(1); // reset to page 1
+});
     </script>
 
 
@@ -311,14 +326,14 @@
     }
 
     let currentPage = 1;
-    const limit = 10;
 
     async function fetchExpenses(page = 1) {
       const token = localStorage.getItem("token");
+      let limit = localStorage.getItem("expense_limit") || 10
 
       try {
         const res = await fetch(`http://localhost:3000/expenses/getExpense?page=${page}&limit=${limit}`, {
-      headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }
     });
 
         const data = await res.json();
