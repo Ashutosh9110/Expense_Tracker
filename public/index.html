@@ -81,6 +81,7 @@
 
       <tbody id="expenseList"></tbody>
     </table>
+    <div id="paginationControls" style="margin-top: 1rem;"></div>
     <button id="logoutBtn" class="hidden">Logout</button>
 
   </div>
@@ -309,34 +310,51 @@
       }
     }
 
-    async function fetchExpenses() {
+    let currentPage = 1;
+    const limit = 10;
+
+    async function fetchExpenses(page = 1) {
       const token = localStorage.getItem("token");
 
       try {
-        const res = await fetch("http://localhost:3000/expenses/getExpense", {
-          method: "GET",
-          headers: {
-          Authorization: `Bearer ${token}`
-      }
+        const res = await fetch(`http://localhost:3000/expenses/getExpense?page=${page}&limit=${limit}`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
 
         const data = await res.json();
         expenseList.innerHTML = "";
-        data.forEach(exp => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-          <td>${exp.description}</td>
-          <td>₹${exp.expenseAmount}</td>
-          <td>${exp.category}</td>
-          <td><button onclick="deleteExpenses(${exp.id})">Delete</button></td>
-`;
 
-          expenseList.appendChild(tr);
-        });
-      } catch (err) {
-        console.error("Fetch failed", err);
-      }
-    }
+         data.expenses.forEach(exp => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${exp.description}</td>
+        <td>₹${exp.expenseAmount}</td>
+        <td>${exp.category}</td>
+        <td><button onclick="deleteExpenses(${exp.id})">Delete</button></td>
+      `;
+      expenseList.appendChild(tr);
+    });
+
+    renderPagination(data.totalPages, page);
+  } catch (err) {
+    console.error("Fetch failed", err);
+  }
+}
+
+function renderPagination(totalPages, currentPage) {
+  const paginationDiv = document.getElementById("paginationControls");
+  paginationDiv.innerHTML = "";
+
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.disabled = i === currentPage;
+    btn.onclick = () => {
+      fetchExpenses(i);
+    };
+    paginationDiv.appendChild(btn);
+  }
+}
 
     async function deleteExpenses(id) {
       const token = localStorage.getItem("token");

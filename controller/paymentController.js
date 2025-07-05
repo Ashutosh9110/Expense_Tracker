@@ -53,7 +53,7 @@ const getPaymentStatus = async (req, res) => {
 
 const processPayment = async (req, res) => {
 
-  const orderId = `ORDER-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`
+  const orderId = "ORDER-" + Date.now() + "-" + uuid.v4();
   const orderAmount = 2000;
   const orderCurrency = "INR";
   const customerID = "1";

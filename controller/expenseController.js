@@ -37,11 +37,24 @@ const addExpense = async (req, res) => {
 const getExpense = async (req, res) => {
   try {
     const userId = req.userId
-    const expense = await expenses.findAll({ where: { userId }})
-      res.status(200).json(expense)
-  } catch (error) {
-    res.status(500).json({ msg : "Unable to fetch expenses", error: error.message})
+    const { page = 1, limit = 10 } = req.query
+    const offset = (page - 1) * limit;
 
+    const { count, rows } = await expenses.findAndCountAll({
+      where: { userId },
+      offset: parseInt(offset),
+      limit: parseInt(limit),
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.status(200).json({
+      totalItems: count,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(count / limit),
+      expenses: rows
+    });
+  } catch (error) {
+    res.status(500).json({ msg: "Unable to fetch expenses", error: error.message });
   }
 }
 
