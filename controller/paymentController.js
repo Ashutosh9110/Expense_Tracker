@@ -9,7 +9,7 @@ const getPaymentPage = (req, res) => {
 }
 
 
-// const getPaymentStatus = (req, res) => {
+// const getPaymentStatus = (req, res) =>  {
 //   res.sendFile(path.join(__dirname, "../services/cashfreeService.js"))
 // }  
 
@@ -53,7 +53,8 @@ const getPaymentStatus = async (req, res) => {
 
 const processPayment = async (req, res) => {
 
-  const orderId = "ORDER-" + Date.now() + "-" + uuid.v4();
+  const orderId = `ORDER-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`
+
   const orderAmount = 2000;
   const orderCurrency = "INR";
   const customerID = "1";

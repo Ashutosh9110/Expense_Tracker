@@ -1,6 +1,8 @@
 require("dotenv").config()
-const express = require("express")
 const path = require("path")
+const fs = require("fs")
+
+const express = require("express")
 const cors = require("cors")
 const app = express()
 const userRouter = require("./routes/userRoutes")
@@ -9,6 +11,7 @@ const paymentRouter = require("./routes/paymentRoutes")
 const premiumRouter = require("./routes/premiumRoutes")
 const resetPasswordRouter = require("./routes/resetPasswordRoutes")
 const {sequelize} = require("./utils/db-connection")
+const morgan = require("morgan")
 
 app.use(cors()) 
 
@@ -21,6 +24,9 @@ app.use("/payments", paymentRouter)
 app.use("/premium", premiumRouter)
 app.use("/password", resetPasswordRouter)
 
+const logStream = fs.createWriteStream(path.join(__dirname, "access.log"), {flags: "a"})
+
+app.use(morgan("combined", { stream: logStream}))
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"))
@@ -32,9 +38,7 @@ app.get("/frontend", (req, res) => {
 
 
 sequelize.sync().then(() => {
-  app.listen(3000, () => {
-    console.log("Server running at PORT 3000");
-  })
+  app.listen(process.env.PORT || 3000)
 }).catch((err) => {
   console.log(err);
 })
