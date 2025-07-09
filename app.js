@@ -37,7 +37,7 @@ app.get("/frontend", (req, res) => {
 });
 
 app.use((req, res) => {
-  console.log("Request has arrived and is about to complete");
+  console.log("Request has arrived and is about to complete II");
   res.sendFile(path.join(__dirname, `public/${req.url}`))
 })
 
