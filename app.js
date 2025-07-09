@@ -13,7 +13,7 @@ const resetPasswordRouter = require("./routes/resetPasswordRoutes")
 const {sequelize} = require("./utils/db-connection")
 const morgan = require("morgan")
 
-app.use(cors()) 
+app.use(cors())   
 
 app.use(express.json())
 app.use(express.static('public'));
@@ -35,6 +35,11 @@ app.get("/", (req, res) => {
 app.get("/frontend", (req, res) => {
   res.sendFile(__dirname + "/public/frontend.html");
 });
+
+app.use((req, res) => {
+  console.log("Request has arrived and is about to complete");
+  res.sendFile(path.join(__dirname, `public/${req.url}`))
+})
 
 
 sequelize.sync().then(() => {
