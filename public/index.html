@@ -91,6 +91,8 @@
       </table>
       <div id="paginationControls" style="margin-top: 1rem;"></div>
       <button id="logoutBtn" class="hidden">Logout</button>
+      <button id="downloadBtn">Download Expense Report</button>
+
 
     </div>
 
@@ -473,6 +475,28 @@
       alert("Failed to send reset email.");
     }
   });
+
+
+  document.getElementById("downloadBtn").addEventListener("click", async () => {
+  const token = localStorage.getItem("token");
+  try {
+    const res = await fetch("http://localhost:3000/expenses/download", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.msg || "Download failed");
+
+    // Show URL or trigger download
+    const link = document.createElement("a");
+    link.href = data.fileURL;
+    link.download = "expense-report.csv";
+    link.click();
+
+  } catch (err) {
+    alert("Error downloading report: " + err.message);
+  }
+});
+
 
     </script>
 

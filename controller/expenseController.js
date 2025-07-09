@@ -1,9 +1,8 @@
-
-
+const { uploadToS3 } = require("../services/s3service");
 const {sequelize} = require("../utils/db-connection")
 const {expenses} = require("../models/expenseModel")
 const { users } = require("../models/userModel");
-
+// const AWS = require("aws-sdk")
 
 const addExpense = async (req, res) => {
   
@@ -75,10 +74,38 @@ const deleteExpense = async (req, res) => {
 }
 
 
+const downloadExpense = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const expenseList = await expenses.findAll({ where: { userId } });
 
+    let data = "Description,Amount,Category,Note\n";
+    expenseList.forEach(exp => {
+      data += `${exp.description},${exp.expenseAmount},${exp.category},${exp.note || ''}\n`;
+    });
+
+    const filename = `Expense-${userId}-${Date.now()}.csv`;
+    const fileURL = await uploadToS3(data, filename);
+    
+    res.status(200).json({ fileURL });
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to generate report", error: err.message });
+  }
+
+      // const expenses = await req.user.getExpense()
+      // console.log(getExpense);
+      // const stringifiedExpenses = JSON.stringify(expenses)
+      // const filename = "expense.txt"
+      // const fileUrl = uploadToS3(stringifiedExpenses, filename)
+      // res.status(200).json({ fileUrl, success: true})
+
+
+
+}
 
 module.exports = {
   addExpense,
   getExpense,
   deleteExpense,
+  downloadExpense
 }
