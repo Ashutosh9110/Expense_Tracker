@@ -28,7 +28,6 @@ exports.createOrder = async (
       },
 
       order_meta: {
-        // You may add metadata like return_url, notify_url, etc.
         "return_url" : `http://localhost:3000/payments/payment-status/${orderId}`,
         payment_method : "ccc, upi, nb"
       },

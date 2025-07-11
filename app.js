@@ -13,7 +13,7 @@ const resetPasswordRouter = require("./routes/resetPasswordRoutes")
 const {sequelize} = require("./utils/db-connection")
 const morgan = require("morgan")
 
-app.use(cors()) 
+app.use(cors())   
 
 app.use(express.json())
 app.use(express.static('public'));
@@ -23,6 +23,7 @@ app.use("/expenses", expenseRouter)
 app.use("/payments", paymentRouter)
 app.use("/premium", premiumRouter)
 app.use("/password", resetPasswordRouter)
+require("./models")
 
 const logStream = fs.createWriteStream(path.join(__dirname, "access.log"), {flags: "a"})
 
