@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router()
-const premiumController = require("../controller/premiumController")
+const premiumController = require("../controller/leaderboardController")
 const authenticate = require("../middleware/auth");
 
 

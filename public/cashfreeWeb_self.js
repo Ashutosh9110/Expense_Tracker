@@ -7,7 +7,7 @@ const cashfree = Cashfree({
 document.getElementById("renderBtn").addEventListener("click", async () => {
   try {
     // Fetch payment session ID from backend
-    const response = await fetch("http://localhost:3000/pay", {
+    const response = await fetch("http://localhost:3000/payments/pay", {
       method: "POST",
     });
 

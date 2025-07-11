@@ -13,7 +13,7 @@ const connectDb = async () => {
   console.log("Connection has been established");
   } catch (error) {
     console.log("Unable to make a connection", error.message);
-  }k
+  }
 }
 
 module.exports = {

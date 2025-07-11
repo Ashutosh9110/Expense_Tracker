@@ -23,6 +23,7 @@ app.use("/expenses", expenseRouter)
 app.use("/payments", paymentRouter)
 app.use("/premium", premiumRouter)
 app.use("/password", resetPasswordRouter)
+require("./models")
 
 const logStream = fs.createWriteStream(path.join(__dirname, "access.log"), {flags: "a"})
 
@@ -35,11 +36,6 @@ app.get("/", (req, res) => {
 app.get("/frontend", (req, res) => {
   res.sendFile(__dirname + "/public/frontend.html");
 });
-
-app.use((req, res) => {
-  console.log("Request has arrived and is about to complete II");
-  res.sendFile(path.join(__dirname, `public/${req.url}`))
-})
 
 
 sequelize.sync().then(() => {

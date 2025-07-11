@@ -19,7 +19,7 @@ exports.uploadToS3 = async (data, filename) => {
   return new Promise((resolve, reject) => {
     s3.upload(params, (err, uploadData) => {
       if (err) return reject(err);
-      resolve(uploadData.Location); // return the public file URL
+      resolve(uploadData.Location); 
     });
   });
 };
