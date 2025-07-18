@@ -34,10 +34,6 @@ const expenses = sequelize.define("expenses", {
 
 })
 
-
-
-
-
  module.exports = {
   expenses
  }

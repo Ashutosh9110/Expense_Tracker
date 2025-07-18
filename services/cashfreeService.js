@@ -9,7 +9,7 @@ const cashfree = new Cashfree(
 exports.createOrder = async (
   orderId,
   orderAmount,
-  orderCurrency = "IND",
+  orderCurrency = "INR",
   customerID,
   customerPhone
 ) => {
@@ -28,12 +28,11 @@ exports.createOrder = async (
       },
 
       order_meta: {
-        "return_url" : `http://localhost:3000/payments/payment-status/${orderId}`,
+        return_url : `http://localhost:3000/success.html?order_id=${orderId}`,
         payment_method : "ccc, upi, nb"
       },
       order_expiry_time: formattedExpiryDate,  
     };
-
 
     const response = await cashfree.PGCreateOrder(request);
     return response.data.payment_session_id;
@@ -73,25 +72,4 @@ exports.createOrder = async (
   };
   
   
-
-var request = {
-    "order_amount": 1.00,
-    "order_currency": "INR",
-    "order_id": "devstudio_7345429632921268651",
-    "customer_details": {
-        "customer_id": "devstudio_user",
-        "customer_phone": "8474090589"
-    },
-    "order_meta": {
-        "return_url": "https://www.cashfree.com/devstudio/preview/pg/web/checkout?order_id={order_id}"
-    }
-};
-
-cashfree.PGCreateOrder(request).then((response) => {
-    console.log('Order created successfully:',response.data);
-}).catch((error) => {
-    console.error('Error:', error.response.data.message);
-});
-
-
 

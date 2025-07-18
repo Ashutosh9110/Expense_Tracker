@@ -1,4 +1,4 @@
-const Brevo = require('@getbrevo/brevo'); // or whatever SDK you use
+const Brevo = require('@getbrevo/brevo');
 const apiInstance = new Brevo.TransactionalEmailsApi();
 
 apiInstance.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_SECRET);
