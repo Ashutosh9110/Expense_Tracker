@@ -1,10 +1,6 @@
-
-
 const bcrypt = require("bcrypt")
-
 const { users } = require("../models/userModel")
 const jwt = require("jsonwebtoken")
-const { jwtSecret } = require("../config")
 
 
 const signUp = async (req, res) => {
@@ -26,8 +22,6 @@ const signUp = async (req, res) => {
 }
 
 
-
-
 const signIn = async (req, res) => {
   try {
     const { email, password } = req.body
@@ -36,72 +30,34 @@ const signIn = async (req, res) => {
     if(!user) {
       return res.status(409).json({ msg : "User not found"})
     }
-
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if(!isPasswordValid){
       return res.status(404).json({ msg : "Incorrect password"})
     }
-
-    const token = jwt.sign({ userId: user.id}, jwtSecret, {expiresIn: "1h"})
+    console.log("JWT_SECRET from env:", process.env.JWT_SECRET);
+    const token = jwt.sign({ userId: user.id, email: user.email, isPremium: user.isPremium}, process.env.JWT_SECRET, {expiresIn: "1h"})
     res.status(201).json({ msg : "User signed in", token})
-
   } catch (error) {
     res.status(500).json({ msg : "Failed to signin the user"})    
   }
 }
 
 
+const getUserStatus = async (req, res) => {
+  try {
+    const user = await users.findByPk(req.userId, {
+      attributes: ["id", "email", "isPremium"]
+    });
+    if (!user) return res.status(404).json({ msg: "User not found" });
 
+    res.json({ isPremium: user.isPremium });
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching user status", error: err.message });
+  }
+};
 
 module.exports = {
   signIn,
-  signUp
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//   const signIn = async (req, res) => {
-//       try {
-//         const { email, password } = req.body
-
-//       const user = await users.findOne({ where: {
-//         email
-//       }})
-//       if(!user) {
-//         res.status(404).json({ msg: "User not found. Please create a new account"})
-//       }
-
-//       const isPasswordValid = await bcrypt.compare(password, user.password);
-//       if (!isPasswordValid) {
-//         return res.status(401).json({ msg: "Incorrect password" });
-//       }
-
-//       const token = jwt.sign({ userId: user.id }, "secretKey", { expiresIn: "1h" });
-//         res.status(200).json({ msg : "User logged in successfully", token })
-//       } catch (error) {
-//         res.status(500).json({ msg : "Failed to login the user",  error: error.message})
-//       }
-//   }
-
-
-//   module.exports = {
-//     signUp,
-//     signIn
-//   }
+  signUp,
+  getUserStatus
+};

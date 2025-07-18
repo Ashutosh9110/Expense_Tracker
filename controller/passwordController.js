@@ -37,16 +37,14 @@ const forgotPassword = async (req, res) => {
 
 
 const getResetForm = async (req, res) => {
-  const id = req.params.id;
 
+  const id = req.params.id;
   try {
     const request = await forgotPasswordRequest.findOne({ where: { id, isActive: true } });
 
     if (!request) {
       return res.status(400).send("Invalid or expired reset link.");
     }
-
-    // Serve basic HTML form
     res.send(`
       <form action="/password/updatepassword/${id}" method="POST">
         <input type="password" name="newPassword" placeholder="Enter new password" required />
@@ -81,7 +79,6 @@ const updatePassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await user.update({ password: hashedPassword });
     await request.update({ isActive: false });
-
     res.send("Password has been updated. Please log in with your new password.");
   } catch (err) {
     console.error(err);

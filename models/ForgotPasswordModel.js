@@ -1,8 +1,5 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../utils/db-connection");
-// const { users } = require("./userModel");
-
-
 
 const forgotPasswordRequest = sequelize.define("forgotPasswordRequest", {
   id: {

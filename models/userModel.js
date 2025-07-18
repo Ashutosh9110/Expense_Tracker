@@ -2,8 +2,6 @@ const { DataTypes } = require("sequelize");
 const { sequelize } = require("../utils/db-connection");
 
 
-
-
 const users = sequelize.define("users", {
   id: {
     type: DataTypes.INTEGER,
@@ -26,6 +24,10 @@ const users = sequelize.define("users", {
   totalExpenses: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
+  },
+  isPremium: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   }
 })
 

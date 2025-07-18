@@ -2,16 +2,12 @@ const path = require("path");
 const crypto = require("crypto")
 const { createOrder, getPaymentStatus: fetchPaymentStatus } = require("../services/cashfreeService");
 const { Payment } = require("../models/paymentModel"); 
-
-
+const { users } = require("../models/userModel")
+const jwt = require("jsonwebtoken");
+// console.log(jwt);
 const getPaymentPage = (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"))
 }
-
-
-// const getPaymentStatus = (req, res) =>  {
-//   res.sendFile(path.join(__dirname, "../services/cashfreeService.js"))
-// }  
 
 
 
@@ -26,29 +22,42 @@ const getPaymentStatus = async (req, res) => {
         { paymentStatus: status },
         { where: { orderId } }
       );
+
+      if (status === "Success") {
+        const userId = req.userId;
+        await users.update({ isPremium: true }, { where: { id: userId } });
+
+        const user = await users.findOne({ where: { id: userId } });
+        if (!user) {
+          return res.status(404).json({ error: "User not found after payment" });
+        }
+
+        const token = jwt.sign(
+          {
+            userId: user.id,
+            email: user.email,
+            isPremium: true
+          },
+          process.env.JWT_SECRET,
+          { expiresIn: "1h" }
+        );
+
+        return res.status(200).json({
+          orderStatus: status,
+          msg: "Payment verified",
+          isPremium: true,
+          token
+        });
+      }
     }
 
-    res.status(200).json({ orderStatus: status });
+    return res.status(200).json({ orderStatus: status });
+    
   } catch (error) {
     console.error("Error in getPaymentStatus:", error);
     res.status(500).json({ error: "Could not fetch payment status" });
   }
 };
-
-
-
-
-// const getPaymentStatus = async (req, res) => {
-//   const orderId = req.params.orderId;
-
-//   try {
-//     const orderStatus = await fetchStatusFromCashfree(orderId);
-//     res.status(200).json({ orderStatus });
-//   } catch (err) {
-//     console.error("Failed to get payment status:", err);
-//     res.status(500).json({ error: "Unable to fetch payment status" });
-//   }
-// };
 
 
 const processPayment = async (req, res) => {
@@ -57,7 +66,7 @@ const processPayment = async (req, res) => {
 
   const orderAmount = 2000;
   const orderCurrency = "INR";
-  const customerID = "1";
+  const customerID = req.userId.toString() // store user ID as string
   const customerPhone = "9999999999";
 
   try {
@@ -101,7 +110,6 @@ const processPayment = async (req, res) => {
 
 
 module.exports = { 
-
   processPayment,
   getPaymentPage,
   getPaymentStatus

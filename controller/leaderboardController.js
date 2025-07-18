@@ -1,5 +1,4 @@
 const { sequelize } = require("../utils/db-connection");
-
 const {expenses} = require("../models/expenseModel")
 const { users } = require("../models/userModel")
 

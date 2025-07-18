@@ -8,7 +8,7 @@ const app = express()
 const userRouter = require("./routes/userRoutes")
 const expenseRouter = require("./routes/expenseRoutes")
 const paymentRouter = require("./routes/paymentRoutes")
-const premiumRouter = require("./routes/premiumRoutes")
+const leaderboardRouter = require("./routes/leaderboardRoutes")
 const resetPasswordRouter = require("./routes/resetPasswordRoutes")
 const {sequelize} = require("./utils/db-connection")
 const morgan = require("morgan")
@@ -21,22 +21,22 @@ app.use(express.urlencoded({ extended: true }))
 app.use("/users", userRouter)
 app.use("/expenses", expenseRouter)
 app.use("/payments", paymentRouter)
-app.use("/premium", premiumRouter)
+app.use("/premium", leaderboardRouter)
 app.use("/password", resetPasswordRouter)
 require("./models")
 
 const logStream = fs.createWriteStream(path.join(__dirname, "access.log"), {flags: "a"})
+
+app.use((req, res, next) => {
+  console.log(req.method, req.path);
+  next();
+});
 
 app.use(morgan("combined", { stream: logStream}))
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"))
 })
-
-app.get("/frontend", (req, res) => {
-  res.sendFile(__dirname + "/public/frontend.html");
-});
-
 
 sequelize.sync().then(() => {
   app.listen(process.env.PORT || 3000)

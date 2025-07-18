@@ -1,40 +1,67 @@
+const signupSection = document.getElementById("signupSection");
+const loginSection = document.getElementById("loginSection");
+const authSection = document.getElementById("authSection");
+const expenseSection = document.getElementById("expenseSection");
+const expenseList = document.getElementById("expenseList");
+const expenseForm = document.getElementById("expenseForm");
+const logoutBtn = document.getElementById("logoutBtn");
+const paymentSection = document.getElementById("paymentSection")
+const forgotPasswordSection = document.getElementById("forgotPasswordSection");
+const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+const backToLoginBtn = document.getElementById("backToLoginBtn");
+
+
+
 window.addEventListener("DOMContentLoaded", () => {
-  //DOMContentLoaded is a browser event that fires when the initial HTML document has been completely loaded and parsed, without waiting for stylesheets, images, and subframes to finish loading. It’s commonly used to ensure that the DOM elements (like buttons, inputs, divs) are available before your JavaScript code tries to interact with them.
 
-//   This part runs after the DOM is fully loaded, meaning:
 
-// document.getElementById(...) will work without throwing a "null" error.
 
-// It checks if a user is logged in by checking for a token in localStorage.
-
-// Based on whether the token exists:
-
-// It shows or hides relevant sections (authSection, expenseSection, paymentSection, etc.).
-
-// It calls fetchExpenses() if the user is authenticated.
-  const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
+  
   if (token) {
-    document.getElementById("authSection").classList.add("hidden");
-    document.getElementById("expenseSection").classList.remove("hidden");
-    logoutBtn.classList.remove("hidden");
-    document.getElementById("paymentSection").classList.remove("hidden"); 
+    const decodedToken = parseJwt(token);
+    // console.log("Token on DOM load:", decodedToken); 
+    authSection.classList.add("hidden")  
+    expenseSection.classList.remove("hidden")
+    logoutBtn.classList.remove("hidden")
+    
+    const localPremium = localStorage.getItem("isPremiumUser");
+
+     if (decodedToken.isPremium || localPremium === "true") {
+      showPremiumUI()
+      } else{
+        paymentSection.classList.remove("hidden")
+      }
+      fetchExpenses()
+    } else {
+      paymentSection.classList.add("hidden")
+    }
+});
 
 
-    fetchExpenses();  
-  } else {
-    // document.getElementById("paymentSection").classList.add("hidden"); 
 
+function parseJwt(token) {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    return null;
   }
-});
+}
 
-document.getElementById("rowsPerPage").value =
-  localStorage.getItem("expense_limit") || 10;
+const token = localStorage.getItem("token");
+const decoded = token && parseJwt(token);
+if (decoded?.isPremium) {
+  showPremiumUI();
+}
 
-document.getElementById("rowsPerPage").addEventListener("change", (e) => {
-  limit = e.target.value;
-  localStorage.setItem("expense_limit", limit);
-  fetchExpenses(1); // reset to page 1
-});
+
+
+document.getElementById("rowsPerPage").value = localStorage.getItem("expense_limit") || 5
+document.getElementById("rowsPerPage").addEventListener("change", (e) => { 
+  limit = e.target.value 
+  localStorage.setItem("expense_limit", limit)
+  fetchExpenses(1)
+})
 
 
 
@@ -45,14 +72,16 @@ const cashfree = Cashfree({
 
 
 document.getElementById("renderBtn").addEventListener("click", async () => {
+  const oldToken = localStorage.getItem("token");
   try {
     const response = await fetch("http://localhost:3000/payments/pay", {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${oldToken}`,
+      },
     });
 
-    const data = await response.json();
-    const paymentSessionId = data.paymentSessionId;
-    const orderId = data.orderId;
+    const { paymentSessionId, orderId } = await response.json();
 
     let checkoutOptions = {
       paymentSessionId,
@@ -60,28 +89,45 @@ document.getElementById("renderBtn").addEventListener("click", async () => {
     };
 
     const result = await cashfree.checkout(checkoutOptions);
-    //   const result = await cashfree.checkout({
-    // paymentSessionId: paymentSessionId,
-    // redirectTarget: "_self",
-    // });
-
-    if (result.error) {
-      console.log("Popup closed or error during payment:", result.error);
-    }
-
-    //     if (result.redirect) {
-    //   console.log("Redirection fallback triggered");
-    // }
 
     if (result.paymentDetails) {
       const verifyRes = await fetch(
-        `http://localhost:3000/payments/payment-status/${orderId}`
+        `http://localhost:3000/payments/payment-status/${orderId}`,
+        {
+          headers: { Authorization:`Bearer ${oldToken}`},
+        }
       );
+
       const verifyData = await verifyRes.json();
-      alert("Your payment is " + verifyData.orderStatus);
+      if (verifyData.isPremium && verifyData.token) {
+        localStorage.setItem("token", verifyData.token);   
+        localStorage.setItem("isPremiumUser", "true");    
+        const decoded  = parseJwt(verifyData.token);
+        if (decoded.isPremium) {
+          showPremiumUI(); 
+          alert("You are a premium user now!");
+        } else {
+        }
+      }
+     const statusRes = await fetch("http://localhost:3000/users/status", {
+      headers: {
+        Authorization:`Bearer ${localStorage.getItem("token")}`
+      },
+    });
+    
+
+const statusData = await statusRes.json();
+
+if (statusData.isPremium) {
+  localStorage.setItem("isPremiumUser", "true");
+  showPremiumUI();
+  alert("You are a premium user!");
+}
+
     }
   } catch (error) {
-    console.error("Checkout error::", error);
+    console.error("Checkout error:", error);
+    alert("Something went wrong. Please try again.");
   }
 });
 
@@ -93,12 +139,20 @@ const leaderboardSection = document.getElementById("leaderboardSection");
 const leaderboardList = document.getElementById("leaderboardList");
 
 leaderboardBtn.addEventListener("click", async () => {
+  const token = localStorage.getItem("token");
+  const decodedToken = parseJwt(token);
+
+  // Checking if user is premium
+  if (!decodedToken.isPremium) {
+    alert("To access leaderboard, please buy premium membership");
+    return;
+  }
   // Toggle logic
   const isVisible = !leaderboardSection.classList.contains("hidden");
 
   if (isVisible) {
     leaderboardSection.classList.add("hidden");
-    leaderboardList.innerHTML = ""; // Optional: clear list on hide
+    leaderboardList.innerHTML = ""; 
   } else {
     await fetchLeaderboard();
     leaderboardSection.classList.remove("hidden");
@@ -137,18 +191,10 @@ async function fetchLeaderboard() {
 
 
 
-const signupSection = document.getElementById("signupSection");
-const loginSection = document.getElementById("loginSection");
-const authSection = document.getElementById("authSection");
-const expenseSection = document.getElementById("expenseSection");
-const expenseList = document.getElementById("expenseList");
-const expenseForm = document.getElementById("expenseForm");
-const logoutBtn = document.getElementById("logoutBtn");
-const payNowSection = document.getElementById("paymentSection")
+
 
 
 document.getElementById("switchToLogin").onclick = () => {
-  // here document.getElementById("signupForm") is a DOM element and we are assigning a function to it.
   loginSection.classList.remove("hidden");
   signupSection.classList.add("hidden");
 };
@@ -158,7 +204,6 @@ document.getElementById("switchToSignup").onclick = () => {
 };
 
 document.getElementById("signupForm").onsubmit = async (e) => {
-  //onsubmit is the correct event listener for a <form> element.
 
   e.preventDefault();
   const name = document.getElementById("name").value;
@@ -167,41 +212,29 @@ document.getElementById("signupForm").onsubmit = async (e) => {
 
   try {
     const res = await fetch("http://localhost:3000/users/signup", {
-      // res is the response object returned by fetch().  It contains: Status (res.status), Headers, Body (in a raw stream format)......json() parses the body into usable data
-
       method: "POST",
       headers: { "Content-Type": "application/json" },  
       body: JSON.stringify({ name, email, password }),
     });
-    const data = await res.json(); // json() parses the body into usable data
-    // It returns a Promise that resolves to a JavaScript object
-    // So when you write: const data = await res.json();.... we are Waiting for the response body to be read, Parsing the JSON, Storing the result in data (usually an object)
+    const data = await res.json()
 
-    // {
-    //   "msg": "Signup successful",
-    //   "token": "abc123xyz"
-    // }
 
-    // becomes
-
-    // { msg: "Signup successful", token: "abc123xyz" }
-
-    alert(data.msg);
-    // console.log(data.msg);
+    alert(data.msg)
+    // console.log(data.msg)
     if (res.ok) {
-      document.getElementById("signupForm").reset();
-      signupSection.classList.add("hidden");
-      loginSection.classList.remove("hidden");
+      document.getElementById("signupForm").reset()
+      signupSection.classList.add("hidden")
+      loginSection.classList.remove("hidden")
     }
   } catch (err) {
-    alert("Signup error: " + err.message);
+    alert("Signup error: " + err.message)
   }
 };
 
 document.getElementById("loginForm").onsubmit = async (e) => {
   e.preventDefault();
-  const email = document.getElementById("loginEmail").value;
-  const password = document.getElementById("loginPassword").value;
+  const email = document.getElementById("loginEmail").value
+  const password = document.getElementById("loginPassword").value
 
   try {
     const res = await fetch("http://localhost:3000/users/signin", {
@@ -209,18 +242,22 @@ document.getElementById("loginForm").onsubmit = async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
-    const data = await res.json();
+    const data = await res.json()
     alert(data.msg);
     if (res.ok) {
       localStorage.setItem("token", data.token);
-      // localStorage is a built-in browser storage that lets you store key-value pairs — permanently (until manually cleared). It persists even if the page is reloaded or the browser is closed.You can store strings only.
 
+      const decoded = parseJwt(data.token);
+      if (decoded.isPremium) {
+        localStorage.setItem("isPremiumUser", "true")
+        showPremiumUI()
+      }else {
+        paymentSection.classList.remove("hidden") 
+      }
       document.getElementById("loginForm").reset();
       authSection.classList.add("hidden");
       expenseSection.classList.remove("hidden");
       logoutBtn.classList.remove("hidden");
-      payNowSection.classList.remove("hidden");
-
       fetchExpenses();
     }
   } catch (err) {
@@ -228,11 +265,12 @@ document.getElementById("loginForm").onsubmit = async (e) => {
   }
 };
 
-let currentPage = 1;
 
+
+let currentPage = 1;
 async function fetchExpenses(page = 1) {
   const token = localStorage.getItem("token");
-  let limit = localStorage.getItem("expense_limit") || 10;
+  let limit = localStorage.getItem("expense_limit") || 5
 
   try {
     const res = await fetch(
@@ -247,24 +285,25 @@ async function fetchExpenses(page = 1) {
 
     data.expenses.forEach((exp) => {
       const tr = document.createElement("tr");
-      tr.innerHTML = `
-  <td>${exp.description}</td>
+      tr.innerHTML = 
+  `<td>${exp.description}</td>
   <td>₹${exp.expenseAmount}</td>
   <td>${exp.category}</td>
   <td>${exp.note || ""}</td>
   <td>
     <button onclick="deleteExpenses(${exp.id})">Delete</button>
     <button onclick='editExpense(${JSON.stringify(exp)})'>Edit</button>
-  </td>
-`;
+  </td>`
+
       expenseList.appendChild(tr);
     });
-
     renderPagination(data.totalPages, page);
   } catch (err) {
     console.error("Fetch failed", err);
   }
 }
+
+
 
 function renderPagination(totalPages, currentPage) {
   const paginationDiv = document.getElementById("paginationControls");
@@ -320,7 +359,6 @@ function editExpense(exp) {
   document.getElementById("amount").value = exp.expenseAmount;
   document.getElementById("category").value = exp.category;
   document.getElementById("note").value = exp.note || "";
-  
   document.querySelector("#expenseForm button[type='submit']").textContent = "Update Expense";
 }
 
@@ -368,14 +406,12 @@ expenseForm.onsubmit = async (e) => {
 };
 
 logoutBtn.addEventListener("click", () => {
-  localStorage.removeItem("token");
-  location.reload();
+  localStorage.clear()
+  location.reload()
 });
 
-const forgotPasswordSection = document.getElementById("forgotPasswordSection");
-const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
-const backToLoginBtn = document.getElementById("backToLoginBtn");
-// const loginSection = document.getElementById("loginSection");
+
+
 
 // Show Forgot Password Form
 forgotPasswordBtn.addEventListener("click", () => {
@@ -411,45 +447,46 @@ document
     }
   });
 
-document.getElementById("downloadBtn").addEventListener("click", async () => {
-  const token = localStorage.getItem("token")
-  try {
-    const res = await fetch("http://localhost:3000/expenses/download", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    //     const data = await res.json();
-    //     if (!res.ok) throw new Error(data.msg || "Download failed");
-    //     // Show URL or trigger download
-    //     const link = document.createElement("a");
-    //     link.href = data.fileURL;
-    //     link.download = "expense-report.csv";
-    //     link.click();
-    //   } catch (err) {
-    //     console.error("Download failed:", err);
-    //     alert(err.message);    }
-    // });
-
-    if (!res.ok) {
-      const errData = await res.json();
-      throw new Error(errData.msg || "Download failed");
+  document.getElementById("downloadBtn").addEventListener("click", async () => {
+    const token = localStorage.getItem("token")
+    try {
+      const res = await fetch("http://localhost:3000/expenses/download", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+ 
+  
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.msg || "Download failed");
+      }
+  
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+  
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "expense-report.csv";
+      link.click();
+  
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download failed:", err);
+      alert(err.message);
     }
+  });
 
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "expense-report.csv";
-    link.click();
 
-    URL.revokeObjectURL(url);
-  } catch (err) {
-    console.error("Download failed:", err);
-    alert(err.message);
-  }
-});
+function isPremiumUser() {
+  const token = localStorage.getItem("token");
+  if (!token) return false;
+  const decoded = parseJwt(token);
+  return decoded.isPremium
+}
 
-document.getElementById("viewReportBtn").addEventListener("click", () => {
-  document.getElementById("reportFrame").src = "/frontend";
-  document.getElementById("reportFrame").classList.remove("hidden");
-});
+
+
+function showPremiumUI() {
+  document.getElementById("premiumBanner").classList.remove("hidden");
+  paymentSection.classList.add("hidden");
+}

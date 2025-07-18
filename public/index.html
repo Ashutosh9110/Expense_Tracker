@@ -6,8 +6,6 @@
     <title>Expense Tracker</title>
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="../public/cashfreeWeb_self.js"></script>
-
     <style>
       .hidden { display: none; }
       body { font-family: Arial, sans-serif; margin: 2rem; background-color: teal ; }
@@ -19,6 +17,9 @@
     </style>
   </head>
   <body>
+
+
+
     <!-- Auth Section -->
 
     <div id="authSection" style="text-align: center; font-size: x-large;">
@@ -59,6 +60,9 @@
     <!-- Expense Section -->
     <div id="expenseSection" class="hidden">
       <h1 style="text-align: center;">Expense Tracker</h1>
+
+      <!-- Premium user Section -->
+      <h2 id="premiumBanner" class="hidden" style="text-align: center; color: gold;">You are a premium user now</h2>
       <form id="expenseForm">
         <input type="text" id="description" placeholder="Description" required />
         <input type="number" id="amount" placeholder="Amount" required />
@@ -70,7 +74,6 @@
           <option value="Party">Party</option>
         </select>
         <button type="submit">Add Expense</button>
-        <button id="viewReportBtn">View Report</button>
         <label for="rowsPerPage">Rows per page:</label>
         <select id="rowsPerPage">
           <option value="5">5</option>
@@ -90,45 +93,28 @@
             <th>Action</th>
           </tr>
         </thead>
-
         <tbody id="expenseList"></tbody>
       </table>
       <div id="paginationControls" style="margin-top: 1rem;"></div>
       <button id="logoutBtn" class="hidden">Logout</button>
       <button id="downloadBtn">Download Expense Report</button>
-
       <button id="leaderboardBtn">Toggle Leaderboard</button>
-
       <section id="leaderboardSection" class="hidden">
         <ul id="leaderboardList"></ul>
       </section>
-
     </div>
-
-    <!-- Premium user Section -->
-
-
-
 
     <!-- Payment Section -->
 
-    
     <div id="paymentSection" class="hidden" style="text-align: center;">
-      <h1>Cashfree Check Integration</h1>
+      <h1>Become a Premium Member!!</h1>
       <div class="card">
-        <h3>Click below to open the checkout page in the current tab</h3>
-        <button id="renderBtn">Pay Now</button>
+        <button id="renderBtn">Buy Premium Membership</button>
         <div id="cf_checkout"></div>
       </div>
     </div>
-
-
     <div id="reportSection" class="hidden"></div>
-
     <iframe id="reportFrame" src="" style="width:100%; height:800px; border:none;" class="hidden"></iframe>
-  
- 
     <script src="./js/main.js"></script>
-
   </body>
   </html>

@@ -8,9 +8,6 @@ const { forgotPasswordRequest } = require("./ForgotPasswordModel")
 users.hasMany(expenses, {foreignKey: "userId", onDelete: "CASCADE"})
 expenses.belongsTo(users, {foreignKey: "userId", as: "user"})
 
-
-
-
 // forgotPasswordRequest.hasMany("users", {foreignKey: "userId", onDelete: "CASCADE"})
 // users.belongsTo(forgotPasswordRequest, { foreignKey: "userId"})
 
